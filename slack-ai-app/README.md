@@ -1,4 +1,4 @@
-# Slack AI Assistant
+# Slack AI Assistant 👀
 
 This project scaffolds a Slack app that uses the Slack Bolt framework together with the OpenAI API to deliver AI-assisted conversations directly in Slack. It comes with a simple event-driven architecture, development tooling, and guidance on how to configure secrets for local development.
 
