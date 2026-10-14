@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Name | Conference</title>
+  <meta name="description" content="Join us for a day of talks, workshops, and conversations.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="logo" href="#top">Event Name</a>
+      <nav aria-label="Main">
+        <a href="#about">About</a>
+        <a href="#speakers">Speakers</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#faq">FAQ</a>
+        <a class="btn btn-small" href="#register">Register</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Date TBD · City, Venue</p>
+        <h1>A one-line promise for the event goes here.</h1>
+        <p class="lede">A short paragraph on who it's for and why they should come.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#register">Get tickets</a>
+          <a class="btn btn-ghost" href="#speakers">Meet the speakers</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container two-col">
+        <div>
+          <h2>About</h2>
+          <p>Describe the event: the theme, the format, and what attendees walk away with.</p>
+        </div>
+        <ul class="stats">
+          <li><strong>1</strong><span>day</span></li>
+          <li><strong>10+</strong><span>speakers</span></li>
+          <li><strong>300</strong><span>attendees</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="speakers" class="section section-alt">
+      <div class="container">
+        <h2>Speakers</h2>
+        <p class="section-intro">Speaker cards are generated from <code>speakers.js</code>. Add a speaker by adding one entry there.</p>
+        <div id="speaker-grid" class="speaker-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="schedule" class="section">
+      <div class="container">
+        <h2>Schedule</h2>
+        <ol class="schedule">
+          <li><time>9:00</time><span>Doors open and coffee</span></li>
+          <li><time>10:00</time><span>Opening keynote</span></li>
+          <li><time>12:00</time><span>Lunch</span></li>
+          <li><time>13:30</time><span>Afternoon sessions</span></li>
+          <li><time>17:00</time><span>Closing remarks and reception</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="faq" class="section section-alt">
+      <div class="container">
+        <h2>FAQ</h2>
+        <details><summary>Where is the event?</summary><p>Venue and address go here.</p></details>
+        <details><summary>Will talks be recorded?</summary><p>Answer goes here.</p></details>
+        <details><summary>Is there a code of conduct?</summary><p>Link to it here.</p></details>
+      </div>
+    </section>
+
+    <section id="register" class="section cta">
+      <div class="container">
+        <h2>Ready to join?</h2>
+        <p>Tickets are limited.</p>
+        <a class="btn" href="#">Register now</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© <span id="year"></span> Event Name. All rights reserved.</div>
+  </footer>
+
+  <script src="speakers.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
