@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  slack-ai-app:
+    name: slack-ai-app (Node 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: slack-ai-app
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22 with the npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Syntax check every file under src
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find src -type f -name '*.js' | sort)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No JavaScript files found under src." >&2
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            node --check "$file"
+            echo "syntax OK: $file"
+          done
+
+      - name: Run unit tests
+        run: npm test
