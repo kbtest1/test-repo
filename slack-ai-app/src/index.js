@@ -2,7 +2,7 @@ import { App, LogLevel } from '@slack/bolt';
 import { config } from 'dotenv';
 import { registerMessageHandler } from './handlers/messageHandler.js';
 
-config();
+config({ quiet: true });
 
 if (!process.env.SLACK_BOT_TOKEN || !process.env.SLACK_SIGNING_SECRET) {
   throw new Error('Missing Slack credentials. Please set SLACK_BOT_TOKEN and SLACK_SIGNING_SECRET.');
