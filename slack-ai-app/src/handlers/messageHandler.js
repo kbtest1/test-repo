@@ -16,7 +16,7 @@ export function registerMessageHandler(app) {
 
       const threadTs = message.thread_ts ?? message.ts;
       const threadResponse = await client.conversations.replies({
-        channel: message.channel,
+        channel: message.channels,
         ts: threadTs,
         inclusive: true
       });
