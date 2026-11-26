@@ -30,6 +30,8 @@ slack-ai-app/
 
 ## Getting Started
 
+Requires Node.js 22 or newer.
+
 1. **Install dependencies**
 
    ```bash

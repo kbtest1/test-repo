@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import { OpenAI } from 'openai';
 
-config();
+config({ quiet: true });
 
 const defaultModel = process.env.MODEL ?? 'gpt-4o-mini';
 const defaultSystemPrompt =
