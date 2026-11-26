@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  slack-ai-app:
+    name: slack-ai-app (Node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: slack-ai-app
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22 with the npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          # Matches the committed lockfiles. slack-ai-app has no committed
+          # lockfile yet, so today this resolves to the root lockfile stub.
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Syntax check every file under src
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find src -type f -name '*.js' | sort)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No JavaScript files found under src." >&2
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            node --check "$file"
+            echo "syntax OK: $file"
+          done
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          npm test 2>&1 | tee test-output.log
+          if ! grep -qE '^# pass [1-9][0-9]*$' test-output.log; then
+            echo "The test run reported no passing tests." >&2
+            exit 1
+          fi

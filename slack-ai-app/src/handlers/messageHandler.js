@@ -1,6 +1,6 @@
 import { getChatCompletion } from '../services/openAiClient.js';
 
-function buildContextFromThread(threadMessages = []) {
+export function buildContextFromThread(threadMessages = []) {
   return threadMessages.map((msg) => ({
     role: msg.user === 'assistant' ? 'assistant' : 'user',
     content: msg.text ?? ''
