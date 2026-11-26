@@ -114,6 +114,33 @@ test('still answers a human message and replies in the thread', async () => {
   assert.deepEqual(harness.calls.replies[0], { channel: 'C1', ts: '100.4', inclusive: true });
   assert.equal(harness.calls.said.length, 1);
   assert.deepEqual(harness.calls.said[0], { text: 'assistant reply', thread_ts: '100.4' });
+  assert.deepEqual(harness.calls.completions[0].context, [], 'a lone trigger leaves no context');
+});
+
+test('answers in an existing thread and replies to the thread root', async () => {
+  const harness = createHarness({
+    threadMessages: [
+      { user: 'U1', text: 'thread root', ts: '80.1' },
+      { user: 'UBOT1', bot_id: 'B1', text: 'first answer', ts: '80.2' },
+      { user: 'U1', text: 'threaded trigger', ts: '80.3' }
+    ]
+  });
+
+  await harness.run({
+    type: 'message',
+    user: 'U1',
+    text: 'threaded trigger',
+    channel: 'C1',
+    thread_ts: '80.1',
+    ts: '80.3'
+  });
+
+  assert.equal(harness.calls.replies[0].ts, '80.1', 'the whole thread is read');
+  assert.equal(harness.calls.said[0].thread_ts, '80.1', 'the answer goes to the thread root');
+  assert.deepEqual(harness.calls.completions[0].context, [
+    { role: 'user', content: 'thread root' },
+    { role: 'assistant', content: 'first answer' }
+  ]);
 });
 
 test('maps bot replies in the thread to the assistant role', async () => {
@@ -130,6 +157,24 @@ test('maps bot replies in the thread to the assistant role', async () => {
   assert.deepEqual(harness.calls.completions[0].context, [
     { role: 'user', content: 'earlier question' },
     { role: 'assistant', content: 'earlier answer' }
+  ]);
+});
+
+test('maps webhook and own-user posts without bot_id to the assistant role', async () => {
+  const context = buildContextFromThread(
+    [
+      { subtype: 'bot_message', text: 'webhook reply', ts: '1' },
+      { user: BOT_USER_ID, text: 'own reply without bot_id', ts: '2' },
+      { user: 'U1', text: 'human', ts: '3' }
+    ],
+    undefined,
+    BOT_USER_ID
+  );
+
+  assert.deepEqual(context, [
+    { role: 'assistant', content: 'webhook reply' },
+    { role: 'assistant', content: 'own reply without bot_id' },
+    { role: 'user', content: 'human' }
   ]);
 });
 
@@ -176,6 +221,7 @@ test('buildContextFromThread drops only the trigger and defaults missing text', 
 
 test('isBotMessage detects bot posts and the app own bot user', () => {
   assert.equal(isBotMessage({ bot_id: 'B1' }, BOT_USER_ID), true);
+  assert.equal(isBotMessage({ user: 'U1' }), false, 'a human message is not a bot message');
   assert.equal(isBotMessage({ subtype: 'bot_message' }, BOT_USER_ID), true);
   assert.equal(isBotMessage({ user: BOT_USER_ID }, BOT_USER_ID), true);
   assert.equal(isBotMessage({ user: 'U1' }, BOT_USER_ID), false);

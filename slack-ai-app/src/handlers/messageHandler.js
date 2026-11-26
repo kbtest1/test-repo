@@ -1,9 +1,15 @@
 import { getChatCompletion } from '../services/openAiClient.js';
 
-// Slack never sends `user: 'assistant'`, so the legacy value is kept only for
-// backwards compatibility. Bot replies are identified by `bot_id`.
-function isBotAuthoredMessage(message = {}) {
-  return Boolean(message.bot_id) || message.user === 'assistant';
+// Bot replies carry `bot_id`, and incoming webhooks carry the `bot_message`
+// subtype without one. Slack never sends `user: 'assistant'`; the legacy value
+// is kept only for backwards compatibility.
+function isBotAuthoredMessage(message = {}, botUserId) {
+  return (
+    Boolean(message.bot_id) ||
+    message.subtype === 'bot_message' ||
+    message.user === 'assistant' ||
+    (Boolean(botUserId) && message.user === botUserId)
+  );
 }
 
 function isTriggerMessage(message, triggerTs) {
@@ -17,11 +23,11 @@ function isTriggerMessage(message, triggerTs) {
  * caller appends it again as the `userMessage`. Without this, the model sees
  * the same question twice.
  */
-export function buildContextFromThread(threadMessages = [], triggerTs) {
-  return (threadMessages ?? [])
+export function buildContextFromThread(threadMessages = [], triggerTs, botUserId) {
+  return threadMessages
     .filter((msg) => msg && !isTriggerMessage(msg, triggerTs))
     .map((msg) => ({
-      role: isBotAuthoredMessage(msg) ? 'assistant' : 'user',
+      role: isBotAuthoredMessage(msg, botUserId) ? 'assistant' : 'user',
       content: msg.text ?? ''
     }));
 }
@@ -31,7 +37,7 @@ export function buildContextFromThread(threadMessages = [], triggerTs) {
  * replies) and its own bot user. Answering them causes a self-reply loop.
  */
 export function isBotMessage(message = {}, botUserId) {
-  if (message.bot_id || message.botId) {
+  if (message.bot_id) {
     return true;
   }
 
@@ -60,7 +66,11 @@ export function registerMessageHandler(app, { complete = getChatCompletion } = {
         inclusive: true
       });
 
-      const context = buildContextFromThread(threadResponse.messages ?? [], message.ts);
+      const context = buildContextFromThread(
+        threadResponse.messages ?? [],
+        message.ts,
+        boltContext?.botUserId
+      );
       const responseText = await complete({ userMessage: message.text, context });
 
       await say({
