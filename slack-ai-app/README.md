@@ -35,7 +35,7 @@ Requires Node.js 22 or newer.
 1. **Install dependencies**
 
    ```bash
-   npm install
+   npm ci
    ```
 
 2. **Duplicate the environment template**
