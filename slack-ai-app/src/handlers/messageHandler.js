@@ -1,16 +1,55 @@
 import { getChatCompletion } from '../services/openAiClient.js';
 
-function buildContextFromThread(threadMessages = []) {
-  return threadMessages.map((msg) => ({
-    role: msg.user === 'assistant' ? 'assistant' : 'user',
-    content: msg.text ?? ''
-  }));
+// Slack never sends `user: 'assistant'`, so the legacy value is kept only for
+// backwards compatibility. Bot replies are identified by `bot_id`.
+function isBotAuthoredMessage(message = {}) {
+  return Boolean(message.bot_id) || message.user === 'assistant';
 }
 
-export function registerMessageHandler(app) {
-  app.message(async ({ message, client, say, logger }) => {
+function isTriggerMessage(message, triggerTs) {
+  return triggerTs !== undefined && message.ts === triggerTs;
+}
+
+/**
+ * Maps Slack thread messages to OpenAI chat turns.
+ *
+ * The triggering message is dropped when `triggerTs` is given, because the
+ * caller appends it again as the `userMessage`. Without this, the model sees
+ * the same question twice.
+ */
+export function buildContextFromThread(threadMessages = [], triggerTs) {
+  return (threadMessages ?? [])
+    .filter((msg) => msg && !isTriggerMessage(msg, triggerTs))
+    .map((msg) => ({
+      role: isBotAuthoredMessage(msg) ? 'assistant' : 'user',
+      content: msg.text ?? ''
+    }));
+}
+
+/**
+ * True for messages this app must never answer: bot posts (including its own
+ * replies) and its own bot user. Answering them causes a self-reply loop.
+ */
+export function isBotMessage(message = {}, botUserId) {
+  if (message.bot_id || message.botId) {
+    return true;
+  }
+
+  if (message.subtype === 'bot_message') {
+    return true;
+  }
+
+  return Boolean(botUserId) && message.user === botUserId;
+}
+
+export function registerMessageHandler(app, { complete = getChatCompletion } = {}) {
+  app.message(async ({ message, client, say, logger, context: boltContext }) => {
     try {
       if (message.subtype && message.subtype !== 'bot_message') {
+        return;
+      }
+
+      if (isBotMessage(message, boltContext?.botUserId)) {
         return;
       }
 
@@ -21,8 +60,8 @@ export function registerMessageHandler(app) {
         inclusive: true
       });
 
-      const context = buildContextFromThread(threadResponse.messages ?? []);
-      const responseText = await getChatCompletion({ userMessage: message.text, context });
+      const context = buildContextFromThread(threadResponse.messages ?? [], message.ts);
+      const responseText = await complete({ userMessage: message.text, context });
 
       await say({
         text: responseText,
@@ -41,7 +80,7 @@ export function registerMessageHandler(app) {
     await ack();
 
     try {
-      const responseText = await getChatCompletion({ userMessage: command.text });
+      const responseText = await complete({ userMessage: command.text });
       await respond({ text: responseText, response_type: 'in_channel' });
     } catch (error) {
       logger.error(error);
