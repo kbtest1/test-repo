@@ -142,3 +142,8 @@ Keep payloads free of message content, prompts, and completions.
 This PR adds documentation only. It does not change any file under
 `slack-ai-app/src` or `website`, and it adds no dependency or configuration. It is
 therefore independent of the open instrumentation and CI pull requests.
+
+This inventory describes `main` at `b55a463`. An open pull request, #27, proposes
+instrumentation for the Slack journey. If #27 merges, re-check the Slack rows
+before you use this table; the tracking column will be stale for any step that
+#27 covers.
