@@ -1,7 +1,9 @@
 import { config } from 'dotenv';
 
-// Load .env once, before any module reads process.env.
-config();
+// Load .env once, before any module reads process.env. Keep the output quiet so
+// a run without a .env file does not print a dotenv banner before our own
+// missing-variable report.
+config({ quiet: true });
 
 export const REQUIRED_ENV_VARS = [
   'SLACK_BOT_TOKEN',
