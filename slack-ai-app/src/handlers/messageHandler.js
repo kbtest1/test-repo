@@ -50,6 +50,10 @@ export function isBotMessage(message = {}, botUserId) {
 
 export function registerMessageHandler(app, { complete = getChatCompletion } = {}) {
   app.message(async ({ message, client, say, logger, context: boltContext }) => {
+    // Resolved before the try block so the error reply lands in the same thread
+    // as a successful reply.
+    const threadTs = message.thread_ts ?? message.ts;
+
     try {
       if (message.subtype && message.subtype !== 'bot_message') {
         return;
@@ -59,7 +63,6 @@ export function registerMessageHandler(app, { complete = getChatCompletion } = {
         return;
       }
 
-      const threadTs = message.thread_ts ?? message.ts;
       const threadResponse = await client.conversations.replies({
         channel: message.channel,
         ts: threadTs,
@@ -81,7 +84,7 @@ export function registerMessageHandler(app, { complete = getChatCompletion } = {
       logger.error(error);
       await say({
         text: "I ran into an error generating a response. Please check the server logs for more details.",
-        thread_ts: message.ts
+        thread_ts: threadTs
       });
     }
   });

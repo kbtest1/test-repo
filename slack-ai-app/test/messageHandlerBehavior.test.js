@@ -241,3 +241,25 @@ test('posts an error message when the model call fails', async () => {
   assert.equal(harness.calls.said.length, 1);
   assert.equal(harness.calls.said[0].thread_ts, '70.1');
 });
+
+test('posts the error reply in the existing thread, not a new one', async () => {
+  const harness = createHarness({
+    threadMessages: [{ user: 'U1', text: 'thread root', ts: '70.1' }],
+    complete: () => {
+      throw new Error('boom');
+    }
+  });
+
+  await harness.run({
+    type: 'message',
+    user: 'U1',
+    text: 'threaded request',
+    channel: 'C1',
+    thread_ts: '70.1',
+    ts: '71.2'
+  });
+
+  assert.equal(harness.calls.errors.length, 1);
+  assert.equal(harness.calls.said.length, 1);
+  assert.equal(harness.calls.said[0].thread_ts, '70.1', 'the error lands in the original thread');
+});
