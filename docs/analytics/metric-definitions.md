@@ -24,21 +24,25 @@ truth after instrumentation.
   company-internal dashboards.
 - **Percentiles:** nearest-rank, computed over raw `latency_ms` values, never over
   pre-averaged buckets.
+- **Website dependency:** M1 to M7 depend on the Slack app only. M8, M9, and M10
+  depend on the website being functional. The site is scaffold content today, so
+  those three are definitions for later, not instrumentation targets now. Do not
+  build a dashboard on them before a user can complete a journey there.
 
 ## Metric index
 
-| ID | Metric | Answers | Computable today? |
-| --- | --- | --- | --- |
-| M1 | Messages handled per day | How much demand the bot serves | No |
-| M2 | Reply success rate | Whether the bot answered | No |
-| M3 | Model latency (p50, p95) | Whether the bot is fast enough | No |
-| M4 | Error rate | How often and where the bot fails | No (partial logs only) |
-| M5 | Completion fallback rate | How often the model returns no usable text | No |
-| M6 | Thread context load failure rate | Whether context retrieval is a failure source | No |
-| M7 | `/ask-ai` usage | Whether the slash command earns its support cost | No |
-| M8 | Website page views | Site reach and traffic mix | No |
-| M9 | Speaker section engagement rate | Whether visitors reach the speaker programme | No |
-| M10 | Register CTA click-through rate | Whether the page drives registration intent | No |
+| ID | Metric | Answers | Computable today? | Depends on a functional website |
+| --- | --- | --- | --- | --- |
+| M1 | Messages handled per day | How much demand the bot serves | No | No |
+| M2 | Reply success rate | Whether the bot answered | No | No |
+| M3 | Model latency (p50, p95) | Whether the bot is fast enough | No | No |
+| M4 | Error rate | How often and where the bot fails | No (partial logs only) | No |
+| M5 | Completion fallback rate | How often the model returns no usable text | No | No |
+| M6 | Thread context load failure rate | Whether context retrieval is a failure source | No | No |
+| M7 | `/ask-ai` usage | Whether the slash command earns its support cost | No | No |
+| M8 | Website page views | Site reach and traffic mix | No | Yes |
+| M9 | Speaker section engagement rate | Whether visitors reach the speaker programme | No | Yes |
+| M10 | Register CTA click-through rate | Whether the page drives registration intent | No | Yes |
 
 ## M1 — Messages handled per day
 
@@ -133,6 +137,10 @@ truth after instrumentation.
 
 ## M8 — Website page views
 
+**Depends on a functional website:** yes. The page is placeholder content and has
+no analytics script. Do not instrument it until the site has real content and a
+hosting setup whose logs, or an approved client script, can be read.
+
 | Field | Value |
 | --- | --- |
 | Definition | The number of page loads of the landing page per day, and the number of distinct sessions, split by path and by referrer class (direct, search, social, internal). |
@@ -146,6 +154,10 @@ truth after instrumentation.
 
 ## M9 — Speaker section engagement rate
 
+**Depends on a functional website:** yes. Speaker cards hold empty titles,
+companies, and bios, and they are not interactive, so there is no real
+engagement to measure.
+
 | Field | Value |
 | --- | --- |
 | Definition | The share of sessions with a page view that reached the speaker section, by anchor navigation or by scrolling the section into view. |
@@ -158,6 +170,9 @@ truth after instrumentation.
 | Notes | A speaker card click cannot be measured today because the cards are non-interactive `<article>` elements with no link and no listener (`website/main.js:6-19`). If cards become links, track `web_speaker_card_clicked` as a separate step from section engagement. |
 
 ## M10 — Register CTA click-through rate
+
+**Depends on a functional website:** yes. No CTA has a destination that can
+complete a registration, so clicks could be counted but never converted.
 
 | Field | Value |
 | --- | --- |
