@@ -11,6 +11,14 @@ const defaultMaxTokens = process.env.MAX_TOKENS ? Number(process.env.MAX_TOKENS)
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// The reply sent when the model returns no usable text. Exported so analytics
+// can tell a real answer from a fallback without changing the visible text.
+export const FALLBACK_REPLY = 'I was unable to generate a response. Please try again.';
+
+export function isFallbackReply(text) {
+  return text === FALLBACK_REPLY;
+}
+
 export async function getChatCompletion({ userMessage, context = [] }) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not set.');
@@ -36,5 +44,5 @@ export async function getChatCompletion({ userMessage, context = [] }) {
         .join('\n')
     : undefined;
 
-  return text ?? 'I was unable to generate a response. Please try again.';
+  return text ?? FALLBACK_REPLY;
 }
